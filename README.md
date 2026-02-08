@@ -1,67 +1,95 @@
-# Multi-Camera Object Detection System 📸🚀
+# Multi-Camera Object Detection (TensorRT Mosaic)
 
-Hệ thống phát hiện vật thể thời gian thực (Real-time Object Detection) hỗ trợ nhiều camera cùng lúc, sử dụng mô hình YOLO (Ultralytics) và xử lý đa luồng (Multi-threading).
+Hệ thống phát hiện vật thể thời gian thực cho nhiều camera, chạy đa luồng và gộp tối đa 4 camera thành một ảnh mosaic để suy luận bằng TensorRT.
 
-## 🌟 Tính năng chính
-* **Đa luồng Camera:** Hỗ trợ đọc và xử lý nhiều luồng video (RTSP/Webcam) song song nhờ `camera_thread.py`.
-* **Nhận diện mạnh mẽ:** Tích hợp mô hình YOLO (v8/v11) để phát hiện vật thể với độ chính xác cao.
-* **Tools hỗ trợ Training:** Bộ công cụ tích hợp sẵn trong `train_processing/` giúp tự động gán nhãn (Auto Labeling), chuyển đổi định dạng (JSON to TXT), và chia tập dữ liệu.
-* **Tối ưu hóa:** Hỗ trợ chuyển đổi mô hình sang ONNX/TensorRT (`convert_onnx.py`, `convert_engine.txt`) để tăng tốc độ suy luận.
+## Tính năng
 
-## 🛠️ Yêu cầu hệ thống
-* Python 3.8 trở lên
-* CUDA (Khuyến nghị nếu chạy trên GPU NVIDIA)
-* Thư viện chính: `ultralytics`, `opencv-python`, `numpy`, `torch`.
+- Đọc nhiều luồng RTSP/Webcam song song (multi-thread).
+- Gộp (mosaic) 2x2 để giảm số lần inference khi chạy nhiều camera.
+- Suy luận bằng TensorRT + PyCUDA để tối ưu tốc độ.
+- Có các script xử lý dữ liệu/train trong `train_processing/`.
 
-## ⚙️ Cài đặt
+## Yêu cầu
 
-1.  **Clone dự án về máy:**
-    ```bash
-    git clone [https://github.com/Spade1odin205/MultiCam-To-Detect_Object.git](https://github.com/Spade1odin205/MultiCam-To-Detect_Object.git)
-    cd MultiCam-To-Detect_Object
-    ```
+- Python 3.8+ (khuyến nghị 3.10/3.11 nếu phù hợp môi trường).
+- NVIDIA GPU + CUDA.
+- TensorRT + PyCUDA.
+- OpenCV.
 
-2.  **Cài đặt các thư viện cần thiết:**
-    ```bash
-    pip install -r requirements.txt
-    ```
-3.  **Data train va model đã train:**
-    ```bash
-    https://drive.google.com/drive/folders/1EDelp8pf3XsI6Z5Elu27efe4yawsr8vq?usp=sharing # Data dùng để train
+Lưu ý: File `requirements.txt` trong repo khá “nặng” (nhiều package không liên quan runtime). Nếu bạn chỉ muốn chạy `final.py`, bạn có thể cài tối thiểu theo đúng môi trường TensorRT của máy.
 
-    https://drive.google.com/drive/folders/1nyGwj-p47fYFgBLI4iohs8dsv92jLJhu?usp=sharing # Model đã train
-    ```
+## Cài đặt
 
-## 🚀 Hướng dẫn sử dụng
+### 1) Tạo môi trường Python
 
-### 1. Cấu hình Camera
-Mở file `List_cam.txt` và thêm đường dẫn của các camera bạn muốn chạy (mỗi dòng một camera).
+Ví dụ (Windows PowerShell):
 
+```bash
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
 
-### 2. Chạy chương trình chính
-Để bắt đầu nhận diện, chạy lệnh:
+Nếu bạn đang dùng môi trường có sẵn trong repo (ví dụ `yolo/`), hãy kích hoạt đúng environment trước khi chạy.
+
+### 2) Data / model tham khảo
+
+- Data dùng để train: https://drive.google.com/drive/folders/1EDelp8pf3XsI6Z5Elu27efe4yawsr8vq?usp=sharing
+- Model đã train: https://drive.google.com/drive/folders/1nyGwj-p47fYFgBLI4iohs8dsv92jLJhu?usp=sharing
+
+## Chạy chương trình
+
+Hiện tại `final.py` KHÔNG đọc `List_cam.txt`. Danh sách camera và đường dẫn TensorRT engine đang được cấu hình trực tiếp trong code.
+
+### 1) Cấu hình camera
+
+Mở `final.py` và sửa biến `CAM_SOURCES`:
+
+```python
+CAM_SOURCES = [
+    "rtsp://user:pass@ip:554/ch1/main",
+    0,  # webcam (tuỳ máy)
+]
+```
+
+### 2) Cấu hình TensorRT engine
+
+Trong `final.py`, sửa `ENGINE_PATH` trỏ tới file `.engine` trên máy bạn.
+
+Ghi chú quan trọng:
+
+- `ENGINE_PATH` trong repo đang để ví dụ kiểu Linux (`/home/...`). Bạn bắt buộc phải đổi sang đường dẫn thật trên máy.
+- Model input mặc định là `640x640` (xem `MODEL_W`, `MODEL_H`). Engine cần khớp kích thước này.
+
+### 3) Chạy
+
 ```bash
 python final.py
-3. Công cụ hỗ trợ Training (Optional)
-Nếu bạn muốn train model riêng, hãy tham khảo thư mục train_processing/:
+```
 
-train.py: Script để bắt đầu training model YOLO.
+## Lưu ý về RTSP / GStreamer
 
-tngoc_tools/auto_label_bb.py: Tự động gán nhãn Bounding Box.
+Trong `final.py`, khi source bắt đầu bằng `rtsp`, code đang dùng pipeline GStreamer với `nvv4l2decoder` (thường dùng trên NVIDIA Jetson / môi trường có plugin tương ứng).
 
-tngoc_tools/split_train.py: Chia dữ liệu thành tập Train/Val.
+- Nếu bạn chạy trên Windows hoặc máy không có `nvv4l2decoder`, phần mở RTSP có thể fail.
+- Cách đơn giản là chỉnh `ThreadedCamera.__init__` để dùng `cv2.VideoCapture(source)` cho RTSP (không dùng pipeline), hoặc cài đúng GStreamer + plugins tương ứng.
 
-📂 Cấu trúc dự án
-MultiCam-To-Detect_Object/
-├── data_processing/        # Xử lý luồng camera và hình ảnh
-│   ├── camera_thread.py    # Class xử lý đa luồng cho camera
-│   ├── camera.py           # Class camera cơ bản
-│   └── ...
-├── train_processing/       # Các công cụ chuẩn bị dữ liệu train
-│   ├── tngoc_tools/        # Bộ tool convert, auto-label
-│   ├── convert_onnx.py     # Xuất model sang ONNX
-│   └── train.py            # Script training
-├── List_cam.txt            # Danh sách cấu hình camera input
-├── final.py                # File chạy chính của chương trình
-└── requirements.txt        # Danh sách thư viện
----
+## Training / Tools (tuỳ chọn)
+
+Thư mục `train_processing/` chứa các công cụ:
+
+- `train_processing/train.py`: script train.
+- `train_processing/convert_onnx.py`: export ONNX.
+- `train_processing/tngoc_tools/`: auto-label, convert định dạng, chia train/val.
+
+## Cấu trúc thư mục (tóm tắt)
+
+```text
+Multi_cam/
+├── final.py
+├── List_cam.txt
+├── requirements.txt
+├── data_processing/
+├── train_processing/
+└── model_new/
+```
