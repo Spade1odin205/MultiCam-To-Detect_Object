@@ -25,6 +25,12 @@ Hệ thống phát hiện vật thể thời gian thực (Real-time Object Detec
     ```bash
     pip install -r requirements.txt
     ```
+3.  **Data train va model đã train:**
+    ```bash
+    https://drive.google.com/drive/folders/1EDelp8pf3XsI6Z5Elu27efe4yawsr8vq?usp=sharing # Data dùng để train
+
+    https://drive.google.com/drive/folders/1nyGwj-p47fYFgBLI4iohs8dsv92jLJhu?usp=sharing # Model đã train
+    ```
 
 ## 🚀 Hướng dẫn sử dụng
 
@@ -55,7 +61,6 @@ MultiCam-To-Detect_Object/
 │   ├── tngoc_tools/        # Bộ tool convert, auto-label
 │   ├── convert_onnx.py     # Xuất model sang ONNX
 │   └── train.py            # Script training
-├── models/                 # Chứa file weights (.pt, .onnx)
 ├── List_cam.txt            # Danh sách cấu hình camera input
 ├── final.py                # File chạy chính của chương trình
 └── requirements.txt        # Danh sách thư viện
