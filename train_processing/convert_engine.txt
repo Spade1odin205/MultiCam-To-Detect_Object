@@ -1,0 +1,9 @@
+/usr/src/tensorrt/bin/trtexec \
+  --onnx=best_mosaic.onnx \
+  --saveEngine=best_mosaic_fp16.engine \
+  --fp16 \
+  --workspace=1024
+
+
+
+

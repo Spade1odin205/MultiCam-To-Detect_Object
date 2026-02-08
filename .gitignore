@@ -1,0 +1,28 @@
+# Dataset
+frames/
+frames1/
+frames2/
+data/
+runs/
+
+# Video
+video/
+video1/
+video_HA/
+
+# Large files
+*.zip
+*.mp4
+*.avi
+*.mkv
+
+# YOLO model checkpoints
+*.pt
+*.onnx
+model_new/
+
+# Cache
+__pycache__/
+*.log
+yolo/
+.vscode/
