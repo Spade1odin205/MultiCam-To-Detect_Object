@@ -60,15 +60,3 @@ MultiCam-To-Detect_Object/
 ├── final.py                # File chạy chính của chương trình
 └── requirements.txt        # Danh sách thư viện
 ---
-
-### Hướng dẫn cách cập nhật file này lên GitHub:
-
-1.  Mở file `README.md` trong VS Code (hoặc Notepad).
-2.  Dán toàn bộ nội dung trong khung code bên trên vào.
-3.  Lưu lại (Ctrl + S).
-4.  Mở Terminal và đẩy lên GitHub:
-    ```bash
-    git add README.md
-    git commit -m "Cap nhat noi dung README chi tiet"
-    git push origin main
-    ```
